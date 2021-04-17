@@ -78,6 +78,8 @@ module fwspi_initiator_core(
   output reg  [7:0] dat_o,         // data output
   output reg        ack_o,         // normal bus termination
   output reg        inta_o,        // interrupt output
+  output			tx_ready,      // TX Fifo not full
+  output			rx_ready,      // RX Fifo not empty
 
   // SPI port
   output reg        sck_o,         // serial clock output
@@ -99,6 +101,10 @@ module fwspi_initiator_core(
   wire       rfre, rffull, rfempty;
   wire [7:0] wfdout;
   wire       wfwe, wffull, wfempty;
+
+  // Propagate information for DMA handshake
+  assign tx_ready = ~wffull;
+  assign rx_ready = ~rfempty;
 
   // misc signals
   wire      tirq;     // transfer interrupt (selected number of transfers done)
@@ -130,6 +136,7 @@ module fwspi_initiator_core(
   // write fifo
   assign wfwe = wb_acc & (adr_i == 2'b10) & ack_o &  we_i;
   assign wfov = wfwe & wffull;
+  
 
   // dat_o
   always @(posedge clk_i)
